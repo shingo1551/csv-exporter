@@ -1,7 +1,84 @@
 import { createRoute } from 'honox/factory'
 
 // 出力したいCSVヘッダーをここに設定します。入力CSVの1行目と完全一致させてください。
-const OUTPUT_COLUMNS = ['名前', 'メールアドレス', '電話番号']
+const OUTPUT_COLUMNS = ['注文日', '注文番号', '注文の合計（税込）', '商品カテゴリー', '商品名']
+/*
+注文日,
+注文番号,
+アカウントグループ,
+発注番号,
+注文の数量,
+通貨,
+注文の小計（税抜）,
+注文の配送料および手数料（税抜）,
+注文の消費税額,注文の割引（税込）,
+注文の合計（税込）,
+注文状況,
+承認者,
+注文の受領記録状況,
+注文の受領記録数量,
+アカウントユーザー,
+ユーザーのEメール,
+請求書状況,
+請求書の合計金額,
+未払い請求額,
+請求書発行日,
+請求書の期日,
+支払認証ID/請求書番号,
+支払い確定日,
+支払い金額,
+支払い方法,
+クレジットカード番号（下4桁）,
+出荷日,
+出荷状況,
+配送業者の問い合わせ番号,
+発送商品の数量,
+配送先住所,
+発送商品の小計（税抜）,
+発送商品の配送料および手数料（税抜）,
+発送商品の割引（税抜）,
+発送商品の消費税額,
+発送商品の合計（税込）,
+配送業者名,
+商品カテゴリー,
+ASIN,
+商品名,
+適格請求書発行事業者登録番号,
+適格請求書（または支払い明細書）番号,
+適格請求書（または支払い明細書）発行者名,
+適格請求書（または支払い明細書）発行日,
+UNSPSC,
+購買ルール,
+参考価格（税抜）,
+商品の価格（税込）,
+商品の価格（注文時の税抜金額）,
+商品の数量,
+商品の小計（税込）,
+商品の小計（税抜）,
+商品の小計（消費税）,
+商品の小計（税率）,
+商品の配送料および手数料（税込）,
+商品の配送料および手数料（税抜）,
+商品の配送料および手数料（消費税）,
+商品の割引（税込）,商品の割引（税抜）,
+商品の割引（消費税）,
+商品および配送料の合計（税込）,
+商品および配送料の合計（税抜）,
+商品および配送料の合計（消費税）,
+発注行番号,
+法人価格割引種別,
+法人割引（割引額）,
+商品の受領記録状況,
+商品の受領記録数量,
+商品の受領記録日,
+商品の受領記録者名,
+商品の受領記録者Eメールアドレス,
+勘定科目,部署コード,
+コストセンター,
+プロジェクトコード,
+所在地,任意フィールド1,
+出品者名
+*/
 
 const script = `
 (() => {
@@ -53,6 +130,6 @@ export default createRoute((c) => c.render(
     <section class="panel"><p class="label">01　CSVファイルを読み込む</p><label class="drop" for="file"><input id="file" type="file" accept=".csv,text/csv" /><b>↑</b><strong>CSVファイルを選択</strong><span>クリック、またはここにファイルをドロップ</span></label><p id="fileinfo" class="info">ファイルはサーバーへ送信されません。</p></section>
     <section id="results" class="panel" hidden><div class="tabletop"><div><p class="label">02　出力する行を選ぶ</p><span id="count">0 行を選択中</span></div><div><button id="all" class="link" type="button">すべて選択</button><button id="none" class="link" type="button">選択解除</button></div></div><p id="warning" class="warning" hidden></p><div class="scroll"><table><thead id="headers"></thead><tbody id="rows"></tbody></table></div><button id="download" class="download" type="button" disabled>↓　選択した行をCSVで保存</button></section>
     <footer>CSV SELECT <span>必要なデータを、必要な分だけ。</span></footer>
-    <script dangerouslySetInnerHTML={{__html: script}} />
+    <script dangerouslySetInnerHTML={{ __html: script }} />
   </main>, { title: 'CSV Select — 必要な行だけ書き出す' }
 ))
