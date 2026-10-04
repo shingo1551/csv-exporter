@@ -2,7 +2,23 @@
   "name": "csv-select",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build", "preview": "wrangler dev", "deploy": "npm run build && wrangler deploy", "typecheck": "tsc --noEmit" },
-  "dependencies": { "hono": "^4.9.8", "honox": "^0.1.0" },
-  "devDependencies": { "@cloudflare/workers-types": "^5.20261002.1", "@hono/vite-build": "^1.2.0", "@hono/vite-dev-server": "^0.19.0", "typescript": "^5.9.2", "vite": "^6.3.5", "wrangler": "^4.36.0" }
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.9.8",
+    "honox": "^0.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261002.1",
+    "@hono/vite-build": "^1.2.0",
+    "@hono/vite-dev-server": "^0.19.0",
+    "typescript": "^5.9.2",
+    "vite": "^6.3.5",
+    "wrangler": "^4.36.0"
+  }
 }
