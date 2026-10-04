@@ -1,6 +1,6 @@
 # CSV Select
 
-CSVをブラウザで読み込み、選択した行から指定列だけをCSVとしてダウンロードするHonoXアプリです。Cloudflare Workersへデプロイできます。CSVデータはブラウザ内だけで処理し、サーバーには送信しません。
+CSVをブラウザで読み込み、ヘッダーとデータを確認しながら出力する列を選んでCSVをダウンロードするHonoXアプリです。Cloudflare Workersへデプロイできます。CSVデータはブラウザ内だけで処理し、サーバーには送信しません。
 
 ## 公開URL
 
@@ -8,7 +8,7 @@ https://csv-select.shingo1551.workers.dev
 
 ## 出力列の設定
 
-`app/routes/index.tsx` の `OUTPUT_COLUMNS` に、入力CSVのヘッダーと完全一致する列名を設定してください。配列に記載した列だけがダウンロードされます。
+`app/routes/index.tsx` の `OUTPUT_COLUMNS` に、初期状態で選択する列名を設定できます。アップロード後は画面で出力列を変更できます。
 
 ## 開発
 
