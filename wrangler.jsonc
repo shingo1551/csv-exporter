@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "csv-select",
+  "main": "./dist/index.js",
+  "compatibility_date": "2026-10-02",
+  "assets": { "directory": "./dist", "binding": "ASSETS" }
+}
