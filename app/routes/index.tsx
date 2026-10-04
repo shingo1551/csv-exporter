@@ -22,7 +22,7 @@ const script = `
      if(quoted) { if(c==='"'&&text[i+1]==='"'){field+='"';i++} else if(c==='"') quoted=false; else field+=c }
      else if(c==='"'&&!field) quoted=true;
      else if(c===','){row.push(field);field=''}
-     else if(c==='\\n'||c==='\\r'){if(c==='\\r'&&text[i+1]==='\\n')i++;row.push(field);out.push(row);row=[];field=''}
+     else if(c.charCodeAt(0)===10||c.charCodeAt(0)===13){if(c.charCodeAt(0)===13&&text.charCodeAt(i+1)===10)i++;row.push(field);out.push(row);row=[];field=''}
      else field+=c;
    }
    if(field||row.length){row.push(field);out.push(row)} return out.filter(r=>r.some(v=>v));
@@ -56,13 +56,13 @@ const script = `
  }
  input.addEventListener('change',async()=>{
    const file=input.files[0]; if(!file)return;
-   try { const parsed=parse((await file.text()).replace(/^\\uFEFF/,'')); if(parsed.length<2)throw Error('ヘッダーとデータ行を含むCSVを選択してください。');
+   try { const text=await file.text(); const parsed=parse(text.charCodeAt(0)===0xFEFF?text.slice(1):text); if(parsed.length<2)throw Error('ヘッダーとデータ行を含むCSVを選択してください。');
      headers=parsed[0].map(x=>x.trim()); rows=parsed.slice(1).reverse(); selectedRows=new Set(rows.map((_,i)=>i));
      const previewRows=rows.slice(0,3);
      columnHead.innerHTML='<tr><th>選択</th><th>CSVヘッダー</th>'+previewRows.map((_,i)=>'<th>'+(i+1)+'行目</th>').join('')+'</tr>';
      columnBody.innerHTML=headers.map((header,i)=>'<tr><td><input type="checkbox" data-index="'+i+'" aria-label="'+esc(header)+'を出力" /></td><th scope="row">'+esc(header)+'</th>'+previewRows.map(r=>'<td>'+esc(r[i]??'')+'</td>').join('')+'</tr>').join('');
      columnBody.querySelectorAll('input[type="checkbox"]').forEach(x=>x.addEventListener('change',renderDataRows));
-     document.getElementById('fileinfo').textContent=file.name+' · '+rows.length+' 行'; card.hidden=false;dataCard.hidden=false;renderPresets(presetSelect.value);renderDataRows();
+     document.getElementById('fileinfo').textContent=file.name+' · '+rows.length+' 行'; card.hidden=false;dataCard.hidden=false;refreshPresets(presetSelect.value);renderDataRows();
    } catch(e){document.getElementById('fileinfo').textContent=e.message;card.hidden=true;dataCard.hidden=true}
  });
  document.getElementById('save-preset').addEventListener('click',()=>{
@@ -93,8 +93,8 @@ const script = `
    const selectedColumns=selectedIndexes();
    const selectedDataRows=rows.filter((_,i)=>selectedRows.has(i));
    const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-   const csv=[selectedColumns.map(i=>headers[i]),...selectedDataRows.map(r=>selectedColumns.map(i=>r[i]??''))].map(r=>r.map(quote).join(',')).join('\\r\\n');
-   const url=URL.createObjectURL(new Blob(['\\uFEFF',csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='selected-data.csv';a.click();URL.revokeObjectURL(url);
+   const csv=[selectedColumns.map(i=>headers[i]),...selectedDataRows.map(r=>selectedColumns.map(i=>r[i]??''))].map(r=>r.map(quote).join(',')).join(String.fromCharCode(13,10));
+   const url=URL.createObjectURL(new Blob([String.fromCharCode(0xFEFF),csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='selected-data.csv';a.click();URL.revokeObjectURL(url);
  });
 })();`
 
