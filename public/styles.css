@@ -9,3 +9,9 @@
 #selected-results .tabletop .link{border:1px solid #d5dfcf;border-radius:6px;background:#f7faf4;color:#496b30;padding:7px 11px;font-weight:600;margin-left:4px}
 #selected-results .tabletop .link:hover{background:#edf4e5;border-color:#a9bd95}
 .hero h1{font-size:clamp(28px,4vw,44px)}
+.column-order-list{display:grid;gap:7px;list-style:none;margin:12px 0 0;padding:0;max-width:560px}
+.column-order-list li{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #dce2d9;border-radius:7px;background:#fafbf8;color:#37433a;font-size:12px;cursor:grab;user-select:none}
+.column-order-list li:active{cursor:grabbing}
+.column-order-list li.dragging{opacity:.45}
+.column-order-list li.drag-over{border-color:#88a85d;background:#f0f6e9}
+.drag-grip{color:#87928a;font-size:18px;line-height:1}
