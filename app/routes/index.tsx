@@ -21,6 +21,7 @@ const script = `
  let headers = [], rows = [], selectedRows = new Set(), selectedColumnOrder = [], numericColumnSet = new Set();
  const collator = new Intl.Collator('ja',{numeric:true,sensitivity:'base'});
  const numberPattern=/^[+-]?(?:[0-9]+(?:[.][0-9]*)?|[.][0-9]+)$/;
+ // 引用符内のカンマや改行を保ちながら、CSVを行とセルに分解する。
  function parse(text) {
    const out=[]; let row=[], field='', quoted=false;
    for(let i=0;i<text.length;i++) { const c=text[i];
@@ -33,6 +34,7 @@ const script = `
    if(field||row.length){row.push(field);out.push(row)} return out.filter(r=>r.some(v=>v));
  }
  function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ // チェックされた列を、ドラッグで設定した順序のまま返す。
  function selectedIndexes(){
    const checked=[...columnBody.querySelectorAll('input[type="checkbox"]')].filter(x=>x.checked).map(x=>Number(x.dataset.index));
    selectedColumnOrder=selectedColumnOrder.filter(i=>checked.includes(i));
@@ -72,6 +74,7 @@ const script = `
    if(Number.isFinite(leftNumber)&&Number.isFinite(rightNumber))return leftNumber-rightNumber;
    return collator.compare(left,right);
  }
+ // 数値セルは画面表示だけ桁区切りにし、元のCSV値は変更しない。
  function isNumericValue(value){return numberPattern.test(String(value??'').trim().replace(/,/g,''))}
  function formatNumericValue(value){
    const text=String(value??'').trim().replace(/,/g,'');
@@ -87,11 +90,13 @@ const script = `
    return {className:numeric?' class="numeric"':'',text:numeric?formatNumericValue(value):String(value??'')};
  }
  function getSortedRows(indexes){
+   // 選択列の表示順を ORDER BY の優先順位として使い、同値なら元の順序を保つ。
    return rows.map((row,originalIndex)=>({row,originalIndex})).sort((a,b)=>{
      for(const index of indexes){const comparison=compareCellValues(a.row[index],b.row[index]);if(comparison)return comparison}
      return a.originalIndex-b.originalIndex;
    });
  }
+ // localStorageには列名と順序だけを保存し、CSVの行データは保存しない。
  function readPresets(){
    try {
      const value=JSON.parse(localStorage.getItem(PRESETS_KEY)||'{}');
@@ -124,6 +129,7 @@ const script = `
    dataBody.querySelectorAll('input[type="checkbox"]').forEach(x=>x.addEventListener('change',()=>{const i=Number(x.dataset.rowIndex);if(x.checked)selectedRows.add(i);else selectedRows.delete(i);updateRowCount()}));
    updateRowCount();
  }
+ // CSVの解析と表示はブラウザー内で行う。
  input.addEventListener('change',async()=>{
    const file=input.files[0]; if(!file)return;
    try { const text=await file.text(); const parsed=parse(text.charCodeAt(0)===0xFEFF?text.slice(1):text); if(parsed.length<2)throw Error('ヘッダーとデータ行を含むCSVを選択してください。');
@@ -154,6 +160,7 @@ const script = `
  document.getElementById('no-columns-button').addEventListener('click',()=>{columnBody.querySelectorAll('input').forEach(x=>x.checked=false);renderDataRows()});
  document.getElementById('all-rows').addEventListener('click',()=>{selectedRows=new Set(rows.map((_,i)=>i));dataBody.querySelectorAll('input').forEach(x=>x.checked=true);updateRowCount()});
  document.getElementById('no-rows').addEventListener('click',()=>{selectedRows.clear();dataBody.querySelectorAll('input').forEach(x=>x.checked=false);updateRowCount()});
+ // 表示用の桁区切りを使わず、選択した元データをCSVとして書き出す。
  document.getElementById('download').addEventListener('click',()=>{
    const selectedColumns=selectedIndexes();
    const selectedDataRows=getSortedRows(selectedColumns).filter(({originalIndex})=>selectedRows.has(originalIndex)).map(({row})=>row);
