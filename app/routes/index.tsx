@@ -18,6 +18,7 @@ const script = `
  const presetStatus = document.getElementById('preset-status');
  const PRESETS_KEY = 'csv-select-column-presets-v1';
  let headers = [], rows = [], selectedRows = new Set(), selectedColumnOrder = [];
+ const collator = new Intl.Collator('ja',{numeric:true,sensitivity:'base'});
  function parse(text) {
    const out=[]; let row=[], field='', quoted=false;
    for(let i=0;i<text.length;i++) { const c=text[i];
@@ -55,6 +56,21 @@ const script = `
      item.addEventListener('dragend',()=>item.classList.remove('dragging'));
    });
  }
+ function compareCellValues(a,b){
+   const left=String(a??'').trim(),right=String(b??'').trim();
+   if(!left&&!right)return 0;
+   if(!left)return -1;
+   if(!right)return 1;
+   const leftNumber=Number(left.replace(/,/g,'')),rightNumber=Number(right.replace(/,/g,''));
+   if(Number.isFinite(leftNumber)&&Number.isFinite(rightNumber))return leftNumber-rightNumber;
+   return collator.compare(left,right);
+ }
+ function getSortedRows(indexes){
+   return rows.map((row,originalIndex)=>({row,originalIndex})).sort((a,b)=>{
+     for(const index of indexes){const comparison=compareCellValues(a.row[index],b.row[index]);if(comparison)return comparison}
+     return a.originalIndex-b.originalIndex;
+   });
+ }
  function readPresets(){
    try {
      const value=JSON.parse(localStorage.getItem(PRESETS_KEY)||'{}');
@@ -83,7 +99,7 @@ const script = `
    noColumns.hidden=indexes.length>0; dataTable.hidden=!indexes.length;
    if(!indexes.length){dataHead.innerHTML='';dataBody.innerHTML='';updateRowCount();return}
    dataHead.innerHTML='<tr><th>選択</th><th>行</th>'+indexes.map(i=>'<th>'+esc(headers[i])+'</th>').join('')+'</tr>';
-   dataBody.innerHTML=rows.map((row,rowIndex)=>'<tr><td><input type="checkbox" data-row-index="'+rowIndex+'" '+(selectedRows.has(rowIndex)?'checked':'')+' aria-label="'+(rowIndex+1)+'行目" /></td><th scope="row">'+(rowIndex+1)+'</th>'+indexes.map(i=>'<td>'+esc(row[i]??'')+'</td>').join('')+'</tr>').join('');
+   dataBody.innerHTML=getSortedRows(indexes).map(({row,originalIndex},rowIndex)=>'<tr><td><input type="checkbox" data-row-index="'+originalIndex+'" '+(selectedRows.has(originalIndex)?'checked':'')+' aria-label="'+(rowIndex+1)+'行目" /></td><th scope="row">'+(rowIndex+1)+'</th>'+indexes.map(i=>'<td>'+esc(row[i]??'')+'</td>').join('')+'</tr>').join('');
    dataBody.querySelectorAll('input[type="checkbox"]').forEach(x=>x.addEventListener('change',()=>{const i=Number(x.dataset.rowIndex);if(x.checked)selectedRows.add(i);else selectedRows.delete(i);updateRowCount()}));
    updateRowCount();
  }
@@ -118,7 +134,7 @@ const script = `
  document.getElementById('no-rows').addEventListener('click',()=>{selectedRows.clear();dataBody.querySelectorAll('input').forEach(x=>x.checked=false);updateRowCount()});
  document.getElementById('download').addEventListener('click',()=>{
    const selectedColumns=selectedIndexes();
-   const selectedDataRows=rows.filter((_,i)=>selectedRows.has(i));
+   const selectedDataRows=getSortedRows(selectedColumns).filter(({originalIndex})=>selectedRows.has(originalIndex)).map(({row})=>row);
    const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
    const csv=[selectedColumns.map(i=>headers[i]),...selectedDataRows.map(r=>selectedColumns.map(i=>r[i]??''))].map(r=>r.map(quote).join(',')).join(String.fromCharCode(13,10));
    const url=URL.createObjectURL(new Blob([String.fromCharCode(0xFEFF),csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='selected-data.csv';a.click();URL.revokeObjectURL(url);
@@ -130,9 +146,9 @@ export default createRoute((c) => c.render(
     <header><a class="brand" href="/">CSV <span>SELECT</span></a><small>ブラウザ内で安全に処理</small></header>
     <section class="hero"><p class="eyebrow">CSV WORKFLOW / CLOUDFLARE</p><h1>必要な行と列だけ書き出す</h1><p>先頭3行を確認しながら列を選び、出力する行も指定できます。</p></section>
     <section class="panel"><p class="label">01　CSVファイルを読み込む</p><label class="drop" for="file"><input id="file" type="file" accept=".csv,text/csv" /><b>↑</b><strong>CSVファイルを選択</strong><span>クリック、またはここにファイルをドロップ</span></label><p id="fileinfo" class="info">ファイルはサーバーへ送信されません。</p></section>
-    <section id="results" class="panel" hidden><div class="tabletop"><div><p class="label">02　出力する列を選ぶ</p><span id="count">0 列を選択中</span></div><div><button id="all-columns" class="link" type="button">すべての列を選択</button><button id="no-columns-button" class="link" type="button">選択解除</button></div></div><div class="preset-tools"><input id="preset-name" type="text" maxlength="80" placeholder="列設定の名前" aria-label="列設定の名前" /><button id="save-preset" class="link" type="button">名前を付けて保存</button><select id="saved-presets" aria-label="保存済みの列設定"><option value="">保存済みの列設定</option></select><button id="delete-preset" class="link" type="button" disabled>削除</button></div><p id="preset-status" class="info" aria-live="polite"></p><div class="scroll"><table><thead id="column-headers"></thead><tbody id="column-rows"></tbody></table></div></section>
-    <section id="column-order" class="panel" hidden><p class="label">選択した列の表示順</p><p class="info">項目をドラッグして、表示順を変更できます。</p><ol id="column-order-list" class="column-order-list" aria-label="選択した列の表示順"></ol></section>
-    <section id="selected-results" class="panel" hidden><div class="tabletop"><div><p class="label">03　選択した列のデータ</p><span id="row-count">0 行を選択中</span></div><div><button id="all-rows" class="link" type="button">すべての行を選択</button><button id="no-rows" class="link" type="button">選択解除</button></div></div><p id="no-columns" class="info">列を選択すると、その列を使ったデータ行がここに表示されます。</p><div class="scroll"><table id="selected-table" hidden><thead id="data-headers"></thead><tbody id="data-rows"></tbody></table></div><button id="download" class="download" type="button" disabled>↓　選択した行と列をCSVで保存</button></section>
+    <section id="results" class="panel" hidden><div class="tabletop"><div><p class="label">02　出力する列を選ぶ</p><span id="count">0 列を選択中</span></div><div><button id="all-columns" class="link" type="button">すべての列を選択</button><button id="no-columns-button" class="link" type="button">選択解除</button></div></div><div class="preset-tools"><select id="saved-presets" aria-label="保存済みの列設定"><option value="">保存済みの列設定</option></select><button id="delete-preset" class="link" type="button" disabled>削除</button></div><p id="preset-status" class="info" aria-live="polite"></p><div class="scroll"><table><thead id="column-headers"></thead><tbody id="column-rows"></tbody></table></div></section>
+    <section id="column-order" class="panel" hidden><p class="label">03　選択した列の表示順</p><p class="info">ドラッグで並べ替えます。この順番が04のソート優先順（昇順）になります。</p><div class="preset-tools"><input id="preset-name" type="text" maxlength="80" placeholder="列設定の名前" aria-label="列設定の名前" /><button id="save-preset" class="link" type="button">名前を付けて保存</button></div><ol id="column-order-list" class="column-order-list" aria-label="選択した列のソート優先順"></ol></section>
+    <section id="selected-results" class="panel" hidden><div class="tabletop"><div><p class="label">04　選択した列のデータ</p><span id="row-count">0 行を選択中</span></div><div><button id="all-rows" class="link" type="button">すべての行を選択</button><button id="no-rows" class="link" type="button">選択解除</button></div></div><p id="no-columns" class="info">列を選択すると、その列を使ったデータ行がここに表示されます。</p><div class="scroll"><table id="selected-table" hidden><thead id="data-headers"></thead><tbody id="data-rows"></tbody></table></div><button id="download" class="download" type="button" disabled>↓　選択した行と列をCSVで保存</button></section>
     <footer>CSV SELECT <span>必要なデータを、必要な分だけ。</span></footer>
     <script dangerouslySetInnerHTML={{ __html: script }} />
   </main>, { title: 'CSV Select — 必要な列だけ書き出す' }
