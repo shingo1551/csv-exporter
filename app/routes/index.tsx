@@ -17,8 +17,9 @@ const script = `
  const presetSelect = document.getElementById('saved-presets');
  const presetStatus = document.getElementById('preset-status');
  const PRESETS_KEY = 'csv-select-column-presets-v1';
- let headers = [], rows = [], selectedRows = new Set(), selectedColumnOrder = [];
+ let headers = [], rows = [], selectedRows = new Set(), selectedColumnOrder = [], numericColumnSet = new Set();
  const collator = new Intl.Collator('ja',{numeric:true,sensitivity:'base'});
+ const numberPattern=/^[+-]?(?:[0-9]+(?:[.][0-9]*)?|[.][0-9]+)$/;
  function parse(text) {
    const out=[]; let row=[], field='', quoted=false;
    for(let i=0;i<text.length;i++) { const c=text[i];
@@ -65,6 +66,20 @@ const script = `
    if(Number.isFinite(leftNumber)&&Number.isFinite(rightNumber))return leftNumber-rightNumber;
    return collator.compare(left,right);
  }
+ function isNumericValue(value){return numberPattern.test(String(value??'').trim().replace(/,/g,''))}
+ function formatNumericValue(value){
+   const text=String(value??'').trim().replace(/,/g,'');
+   if(!numberPattern.test(text))return String(value??'');
+   const [integerPart,fraction]=text.split('.');
+   const sign=integerPart.startsWith('-')?'-':'';
+   const digits=integerPart.replace(/^[+-]/,'')||'0';
+   const grouped=digits.replace(/([0-9])(?=(?:[0-9]{3})+$)/g,'$1,');
+   return sign+grouped+(fraction!==undefined?'.'+fraction:'');
+ }
+ function formatCell(value,index){
+   const numeric=numericColumnSet.has(index)&&isNumericValue(value);
+   return {className:numeric?' class="numeric"':'',text:numeric?formatNumericValue(value):String(value??'')};
+ }
  function getSortedRows(indexes){
    return rows.map((row,originalIndex)=>({row,originalIndex})).sort((a,b)=>{
      for(const index of indexes){const comparison=compareCellValues(a.row[index],b.row[index]);if(comparison)return comparison}
@@ -98,8 +113,8 @@ const script = `
    document.getElementById('count').textContent=indexes.length+' 列を選択中';
    noColumns.hidden=indexes.length>0; dataTable.hidden=!indexes.length;
    if(!indexes.length){dataHead.innerHTML='';dataBody.innerHTML='';updateRowCount();return}
-   dataHead.innerHTML='<tr><th>選択</th><th>行</th>'+indexes.map(i=>'<th>'+esc(headers[i])+'</th>').join('')+'</tr>';
-   dataBody.innerHTML=getSortedRows(indexes).map(({row,originalIndex},rowIndex)=>'<tr><td><input type="checkbox" data-row-index="'+originalIndex+'" '+(selectedRows.has(originalIndex)?'checked':'')+' aria-label="'+(rowIndex+1)+'行目" /></td><th scope="row">'+(rowIndex+1)+'</th>'+indexes.map(i=>'<td>'+esc(row[i]??'')+'</td>').join('')+'</tr>').join('');
+   dataHead.innerHTML='<tr><th>選択</th><th>行</th>'+indexes.map(i=>'<th'+(numericColumnSet.has(i)?' class="numeric"':'')+'>'+esc(headers[i])+'</th>').join('')+'</tr>';
+   dataBody.innerHTML=getSortedRows(indexes).map(({row,originalIndex},rowIndex)=>'<tr><td><input type="checkbox" data-row-index="'+originalIndex+'" '+(selectedRows.has(originalIndex)?'checked':'')+' aria-label="'+(rowIndex+1)+'行目" /></td><th scope="row">'+(rowIndex+1)+'</th>'+indexes.map(i=>{const cell=formatCell(row[i],i);return '<td'+cell.className+'>'+esc(cell.text)+'</td>'}).join('')+'</tr>').join('');
    dataBody.querySelectorAll('input[type="checkbox"]').forEach(x=>x.addEventListener('change',()=>{const i=Number(x.dataset.rowIndex);if(x.checked)selectedRows.add(i);else selectedRows.delete(i);updateRowCount()}));
    updateRowCount();
  }
@@ -107,9 +122,10 @@ const script = `
    const file=input.files[0]; if(!file)return;
    try { const text=await file.text(); const parsed=parse(text.charCodeAt(0)===0xFEFF?text.slice(1):text); if(parsed.length<2)throw Error('ヘッダーとデータ行を含むCSVを選択してください。');
      headers=parsed[0].map(x=>x.trim()); rows=parsed.slice(1).reverse(); selectedRows=new Set(rows.map((_,i)=>i)); selectedColumnOrder=[];
+     numericColumnSet=new Set(headers.map((_,i)=>i).filter(i=>rows.some(row=>isNumericValue(row[i]))));
      const previewRows=rows.slice(0,3);
      columnHead.innerHTML='<tr><th>選択</th><th>CSVヘッダー</th>'+previewRows.map((_,i)=>'<th>'+(i+1)+'行目</th>').join('')+'</tr>';
-     columnBody.innerHTML=headers.map((header,i)=>'<tr><td><input type="checkbox" data-index="'+i+'" aria-label="'+esc(header)+'を出力" /></td><th scope="row">'+esc(header)+'</th>'+previewRows.map(r=>'<td>'+esc(r[i]??'')+'</td>').join('')+'</tr>').join('');
+     columnBody.innerHTML=headers.map((header,i)=>'<tr><td><input type="checkbox" data-index="'+i+'" aria-label="'+esc(header)+'を出力" /></td><th scope="row">'+esc(header)+'</th>'+previewRows.map(r=>{const cell=formatCell(r[i],i);return '<td'+cell.className+'>'+esc(cell.text)+'</td>'}).join('')+'</tr>').join('');
      columnBody.querySelectorAll('input[type="checkbox"]').forEach(x=>x.addEventListener('change',renderDataRows));
      document.getElementById('fileinfo').textContent=file.name+' · '+rows.length+' 行'; card.hidden=false;dataCard.hidden=false;refreshPresets(presetSelect.value);renderDataRows();applyPreset(presetSelect.value);
    } catch(e){document.getElementById('fileinfo').textContent=e.message;card.hidden=true;dataCard.hidden=true}
