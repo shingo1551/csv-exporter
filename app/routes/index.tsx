@@ -1,4 +1,8 @@
 import { createRoute } from 'honox/factory'
+import { version } from '../../package.json'
+
+// ビルド時に埋め込まれた git 情報を含む表示用文字列（例: v0.1.0+bf363dc-dirty）。
+const buildInfo = `v${version}+${__GIT_HASH__}${__GIT_DIRTY__ ? '-dirty' : ''}`
 
 const script = `
 (() => {
@@ -176,10 +180,10 @@ export default createRoute((c) => c.render(
     <section class="hero"><p class="eyebrow">CSV WORKFLOW / CLOUDFLARE</p><h1>必要な行と列だけ書き出す</h1><p>先頭3行を確認しながら列を選び、出力する行も指定できます。</p></section>
     <section class="panel"><p class="label">01　CSVファイルを読み込む</p><label class="drop" for="file"><input id="file" type="file" accept=".csv,text/csv" /><b>↑</b><strong>CSVファイルを選択</strong><span>クリック、またはここにファイルをドロップ</span></label><p id="fileinfo" class="info">ファイルはサーバーへ送信されません。</p></section>
     <section id="results" class="panel" hidden><div class="tabletop"><div><p class="label">02　出力する列を選ぶ</p><span id="count">0 列を選択中</span></div><div><button id="all-columns" class="link" type="button">すべての列を選択</button><button id="no-columns-button" class="link" type="button">選択解除</button></div></div><div class="preset-tools"><select id="saved-presets" aria-label="保存済みの列設定"><option value="">保存済みの列設定</option></select><button id="delete-preset" class="link" type="button" disabled>削除</button></div><p id="preset-status" class="info" aria-live="polite"></p><div class="scroll"><table><thead id="column-headers"></thead><tbody id="column-rows"></tbody></table></div></section>
-    <section id="column-order" class="panel" hidden><p class="label">03　選択した列の表示順</p><p class="info">ドラッグで並べ替えます。この順番が04のソート優先順（昇順）になります。</p><div class="preset-tools"><input id="preset-name" type="text" maxlength="80" placeholder="列設定の名前" aria-label="列設定の名前" /><button id="save-preset" class="link" type="button">名前を付けて保存</button></div><ol id="column-order-list" class="column-order-list" aria-label="選択した列のソート優先順"></ol></section>
+    <section id="column-order" class="panel" hidden><p class="label">03　選択した列の表示順</p><p class="info">ドラッグで並べ替えます。この順番が04のソート優先順（昇順）になります。</p><div class="preset-tools"><input id="preset-name" type="text" maxlength={80} placeholder="列設定の名前" aria-label="列設定の名前" /><button id="save-preset" class="link" type="button">名前を付けて保存</button></div><ol id="column-order-list" class="column-order-list" aria-label="選択した列のソート優先順"></ol></section>
     <section id="selected-results" class="panel" hidden><div class="tabletop"><div><p class="label">04　選択した列のデータ</p><span id="row-count">0 行を選択中</span></div><div><button id="all-rows" class="link" type="button">すべての行を選択</button><button id="no-rows" class="link" type="button">選択解除</button></div></div><p id="no-columns" class="info">列を選択すると、その列を使ったデータ行がここに表示されます。</p><div class="scroll"><table id="selected-table" hidden><thead id="data-headers"></thead><tbody id="data-rows"></tbody></table></div><button id="download" class="download" type="button" disabled>↓　選択した行と列をCSVで保存</button></section>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-    <footer>CSV SELECT <span>必要なデータを、必要な分だけ。</span></footer>
+    <footer>CSV SELECT <span class="end"><span>必要なデータを、必要な分だけ。</span><span class="version">{buildInfo}</span></span></footer>
     <script dangerouslySetInnerHTML={{ __html: script }} />
   </main>, { title: 'CSV Select — 必要な列だけ書き出す' }
 ))
