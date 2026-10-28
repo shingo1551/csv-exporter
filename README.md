@@ -4,7 +4,8 @@ CSVをブラウザで読み込み、先頭3行を見ながら出力列を選び�
 
 ## 公開URL
 
-https://csv-select.shingo1551.workers.dev
+- preview: https://csv-select.shingo1551.workers.dev/
+- product: https://csv-select.shin5.fyi/
 
 ## 出力列の選択
 
