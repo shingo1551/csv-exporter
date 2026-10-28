@@ -22,6 +22,24 @@ npm install
 npm run dev
 ```
 
+## Preview → Production フロー
+
+Cloudflare Workers では `npm run deploy` は常に production にデプロイします。
+preview URL で確認してから production に昇格するには、以下のフローを使います。
+
+```sh
+# 1. Preview URL を発行して動作確認
+npm run preview:upload
+
+# 2. Preview URL（<version-id>-csv-select.shingo1551.workers.dev）で確認
+
+# 3. 問題なければ production に昇格
+npm run preview:deploy
+```
+
+ローカルでの確認は `npm run dev`（Vite）または `npm run preview`（wrangler dev）を使います。
+
+"
 ## Cloudflare Workersへデプロイ
 
 ```sh

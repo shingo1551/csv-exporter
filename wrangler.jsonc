@@ -3,5 +3,7 @@
   "name": "csv-select",
   "main": "./dist/index.js",
   "compatibility_date": "2026-10-02",
+  "workers_dev": true,
+  "preview_urls": true,
   "assets": { "directory": "./dist", "binding": "ASSETS" }
 }
