@@ -194,5 +194,5 @@ export default createRoute((c) => c.render(
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     <footer>CSV SELECT <span class="end"><span>必要なデータを、必要な分だけ。</span><span class="version">{buildInfo}</span></span></footer>
     <script dangerouslySetInnerHTML={{ __html: script }} />
-  </main>, { title: 'CSV Select — 必要な列だけ書き出す' }
+  </main>, { title: 'CSV Select — 必要な列だけ書き出す', description: 'CSVファイルから必要な列・行だけを選び、新しいCSVとして書き出すツール。' }
 ))
