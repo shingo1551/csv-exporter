@@ -1,2 +1,2 @@
-import { createApp } from 'honox/server'
-export default createApp()
+import { createApp } from "honox/server";
+export default createApp();

@@ -1,4 +1,4 @@
-import { jsxRenderer } from 'hono/jsx-renderer'
+import { jsxRenderer } from "hono/jsx-renderer";
 
 export default jsxRenderer(({ children, title, description }) => (
   <html lang="ja" translate="no">
@@ -13,4 +13,4 @@ export default jsxRenderer(({ children, title, description }) => (
     </head>
     <body>{children}</body>
   </html>
-))
+));
