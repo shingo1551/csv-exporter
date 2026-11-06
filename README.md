@@ -23,26 +23,26 @@ CSVをアップロードすると、ヘッダーごとにチェックボック�
 ## 開発
 
 ```sh
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 ## Preview → Production フロー
 
-Cloudflare Workers では `npm run deploy` は常に production にデプロイします。
+Cloudflare Workers では `pnpm run deploy` は常に production にデプロイします。
 preview URL で確認してから production に昇格するには、以下のフローを使います。
 
 ```sh
 # 1. Preview URL を発行して動作確認
-npm run preview:upload
+pnpm run preview:upload
 
 # 2. Preview URL（<version-id>-csv-select.shingo1551.workers.dev）で確認
 
 # 3. 問題なければ production に昇格
-npm run preview:deploy
+pnpm run preview:deploy
 ```
 
-ローカルでの確認は `npm run dev`（Vite）または `npm run preview`（wrangler
+ローカルでの確認は `pnpm run dev`（Vite）または `pnpm run preview`（wrangler
 dev）を使います。
 
 "
@@ -50,7 +50,7 @@ dev）を使います。
 ## Cloudflare Workersへデプロイ
 
 ```sh
-npm run deploy
+pnpm run deploy
 ```
 
 初回は `wrangler.jsonc` の Worker 名を設定し、`wrangler login`

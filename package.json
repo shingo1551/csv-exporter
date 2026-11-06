@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "wrangler dev",
-    "preview:deploy": "npm run build && npx wrangler preview --name preview",
-    "deploy": "npm run build && wrangler deploy",
+    "preview:deploy": "pnpm run build && npx wrangler preview --name preview",
+    "deploy": "pnpm run build && wrangler deploy",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
